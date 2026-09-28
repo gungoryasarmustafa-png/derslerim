@@ -87,11 +87,20 @@ button{cursor:pointer}
 .seg button.on{background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)}
 
 /* not girişi */
-.grade{width:62px;height:40px;border:1.5px solid var(--line);border-radius:10px;text-align:center;font-size:17px;font-weight:700;background:#fff;flex:none}
+.grade{width:56px;height:40px;border:1.5px solid var(--line);border-radius:10px;text-align:center;font-size:17px;font-weight:700;background:#fff;flex:none}
 .grade:focus{outline:none;border-color:var(--c,var(--accent))}
 .grade.bad{border-color:var(--red);background:var(--red-bg)}
 .gk{border:none;background:var(--bg2);color:var(--muted);border-radius:8px;width:30px;height:32px;font-size:13px;font-weight:700;flex:none}
-.nameBtn{border:none;background:none;padding:0;text-align:left;flex:1;min-width:0}
+.nameBtn{border:none;background:none;padding:0;text-align:left;flex:1;min-width:0;font-size:15px}
+.row .grade + .grade{margin-left:-4px}
+.gradehead{padding:6px 14px;background:var(--bg2)}
+.kutular{display:flex;gap:10px;align-items:center;flex:none}
+.row.wide{flex-wrap:wrap;row-gap:6px}
+.row.wide .nameBtn{flex:1 1 calc(100% - 50px)}
+.row.wide .kutular{flex:1 1 100%;justify-content:flex-end}
+.gh{width:56px;text-align:center;font-size:11px;font-weight:700;color:var(--c);flex:none}
+.gradehead .gh + .gh{margin-left:-4px}
+@media (max-width:400px){ .grade,.gh{width:52px} .gk{width:26px} .row,.kutular{gap:8px} }
 
 /* yoklama */
 .att.absent{background:var(--red-bg)}
@@ -143,7 +152,7 @@ label.lab{display:block;font-size:13px;font-weight:600;color:var(--muted);margin
 <script>
 'use strict';
 /* ================= Sabit bilgiler ================= */
-const SURUM = '1.0';
+const SURUM = '1.2';
 const SAATLER = {1:['08:30','09:10'],2:['09:25','10:05'],3:['10:20','11:00'],4:['11:15','11:55'],5:['12:25','13:05'],6:['13:20','14:00'],7:['14:15','14:55']};
 const PROGRAM = {
   1:{1:'7/B',2:'7/E',3:'7/C',4:'6/B',5:'8/D',6:'5/A',7:'8/A'},
@@ -456,32 +465,43 @@ function yoklamaDegis(k, no) {
   kaydet('yoklama'); const y = window.scrollY; ciz(); window.scrollTo(0, y);
 }
 
-/* ---------- Not girişi (sütun sütun) ---------- */
-let NOT_SINIF = null, NOT_SUTUN = 'e1';
+/* ---------- Not girişi ---------- */
+// Etkinlik 1 ve 2 aynı satırda yan yana, birbirinden bağımsız girilir.
+const GIRISLER = [
+  {k:'hepsi', ad:'Ürün Dosyası + 1. ve 2. Etkinlik', kisa:'Hepsi', alanlar:['urun','e1','e2'], basliklar:['Ürün','1.Etk','2.Etk']},
+  {k:'etk',  ad:'Ders Etkinliklerine Katılım', kisa:'Etkinlikler', alanlar:['e1','e2'], basliklar:['1.Etk','2.Etk']},
+  {k:'urun', ad:'Öğrenci Ürün Dosyası',        kisa:'Ürün Dosyası',      alanlar:['urun'],     basliklar:['Ürün']},
+];
+let NOT_SINIF = null, NOT_GIRIS = 'hepsi';
+const girisBul = () => GIRISLER.find(x => x.k === NOT_GIRIS);
+const doluSay = (s, ogr, alanlar) => ogr.filter(o => alanlar.every(a => s[o.no]?.[a])).length;
 GORUNUM.notlar = (p = {}) => {
   if (p.sinif) NOT_SINIF = p.sinif;
   if (!NOT_SINIF) NOT_SINIF = anlikDers()?.sinif || '5/A';
-  const sinif = NOT_SINIF, sut = SUTUNLAR.find(c => c.k === NOT_SUTUN);
+  const sinif = NOT_SINIF, gr = girisBul();
   const ogr = ogrenciler(sinif);
   const veri = S.notlar[DONEM]?.[sinif] || {};
-  const dolu = ogr.filter(o => veri[o.no]?.[NOT_SUTUN]).length;
+  const dolu = doluSay(veri, ogr, gr.alanlar);
   SONRA.push(() => document.querySelectorAll('.chips .chip.on').forEach(c => c.parentElement.scrollLeft = c.offsetLeft - c.parentElement.clientWidth / 2 + c.clientWidth / 2));
   SONRA.push(() => document.querySelectorAll('.grade').forEach((el, i, all) => {
+    el.addEventListener('focus', () => el.closest('.row').dataset.son = el.dataset.k);
     el.addEventListener('change', () => notYaz(el));
     el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); notYaz(el); (all[i+1] || el).focus(); if (!all[i+1]) el.blur(); } });
   }));
   return `${geriBtn()}<div class="bar"><h1>Not girişi</h1></div>
     <div class="seg" style="margin-bottom:8px">${['1','2'].map(d => `<button class="${DONEM === d ? 'on' : ''}" onclick="DONEM='${d}';ciz()">${d}. Dönem</button>`).join('')}</div>
     <div class="chips">${SINIFLAR.map(s => `<button class="chip ${g(s)} ${s === sinif ? 'on' : ''}" onclick="NOT_SINIF='${s}';ciz()">${s}</button>`).join('')}</div>
-    <div class="chips">${SUTUNLAR.map(c => `<button class="chip ${c.k === NOT_SUTUN ? 'on' : ''}" onclick="NOT_SUTUN='${c.k}';ciz()">${c.kisa}</button>`).join('')}</div>
+    <div class="seg" style="margin:2px 0 8px">${GIRISLER.map(x => `<button class="${x.k === NOT_GIRIS ? 'on' : ''}" onclick="NOT_GIRIS='${x.k}';ciz()">${x.kisa}</button>`).join('')}</div>
     <div class="${g(sinif)}">
     <div class="card cls" style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px">
-      <span><b style="color:var(--c)">${sinif}</b> · ${sut.ad}</span><span class="badge ${dolu === ogr.length && ogr.length ? 'ok' : ''}">${dolu}/${ogr.length}</span></div>
-    ${ogr.length ? `<div class="list">` + ogr.map(o => `<div class="row"><span class="no">${esc(o.no)}</span>
+      <span><b style="color:var(--c)">${sinif}</b> · ${gr.ad}</span><span class="badge ${dolu === ogr.length && ogr.length ? 'ok' : ''}">${dolu}/${ogr.length}</span></div>
+    ${ogr.length ? `<div class="list">
+      <div class="row gradehead"><span class="grow"></span>${gr.basliklar.map(b => `<span class="gh">${b}</span>`).join('')}</div>` +
+      ogr.map(o => `<div class="row ${gr.alanlar.length > 2 ? 'wide' : ''}" data-no="${esc(o.no)}"><span class="no">${esc(o.no)}</span>
         <button class="nameBtn t" onclick="fotoGoster('${sinif}','${esc(o.no)}')">${esc(o.ad)}</button>
-        <button class="gk" onclick="notHizli(this,'G')">G</button><button class="gk" onclick="notHizli(this,'K')">K</button>
-        <input class="grade" inputmode="numeric" enterkeyhint="next" maxlength="3" autocomplete="off" data-no="${esc(o.no)}" value="${esc(veri[o.no]?.[NOT_SUTUN] || '')}"></div>`).join('') + `</div>
-      <p class="sub" style="text-align:center;margin-top:12px">0–100 arası puan · Girmedi: <b>G</b> · Kopya: <b>K</b><br>İsme dokununca fotoğraf açılır.</p>`
+        <div class="kutular"><button class="gk" onclick="notHizli(this,'G')">G</button><button class="gk" onclick="notHizli(this,'K')">K</button>
+        ${gr.alanlar.map(a => `<input class="grade" inputmode="numeric" enterkeyhint="next" maxlength="3" autocomplete="off" data-no="${esc(o.no)}" data-k="${a}" value="${esc(veri[o.no]?.[a] || '')}">`).join('')}</div></div>`).join('') + `</div>
+      <p class="sub" style="text-align:center;margin-top:12px">0–100 arası puan · Girmedi: <b>G</b> · Kopya: <b>K</b><br>G/K, satırda en son dokunduğunuz kutuya yazılır. Enter bir sonraki kutuya geçer.<br>İsme dokununca fotoğraf açılır.</p>`
       : `<div class="empty">Bu sınıfın listesi yüklenmedi.</div>`}
   </div>`;
 };
@@ -491,12 +511,16 @@ function notYaz(el) {
   if (!notGecerli(v)) { el.classList.add('bad'); toast('0–100 arası sayı, G veya K girin'); return; }
   el.classList.remove('bad');
   const d = S.notlar[DONEM] ||= {}, s = d[NOT_SINIF] ||= {}, o = s[el.dataset.no] ||= {};
-  if (v) o[NOT_SUTUN] = v; else delete o[NOT_SUTUN];
+  if (v) o[el.dataset.k] = v; else delete o[el.dataset.k];
   kaydet('notlar');
-  const ogr = ogrenciler(NOT_SINIF), dolu = ogr.filter(x => s[x.no]?.[NOT_SUTUN]).length;
+  const ogr = ogrenciler(NOT_SINIF), dolu = doluSay(s, ogr, girisBul().alanlar);
   const b = document.querySelector('.card .badge'); if (b) { b.textContent = `${dolu}/${ogr.length}`; b.classList.toggle('ok', dolu === ogr.length); }
 }
-function notHizli(btn, harf) { const el = btn.parentElement.querySelector('.grade'); el.value = harf; notYaz(el); }
+function notHizli(btn, harf) {
+  const row = btn.closest('.row');
+  const el = row.querySelector(`.grade[data-k="${row.dataset.son || ''}"]`) || row.querySelector('.grade');
+  el.value = harf; notYaz(el);
+}
 
 /* ---------- Ödev / malzeme ---------- */
 function odevSatir(o) {
