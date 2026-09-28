@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Derslerim">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Derslerim</title>
+<style>
+:root{
+  color-scheme: light;
+  --bg:#FFFFFF; --bg2:#F6F6F9; --line:#ECECF1; --text:#1F1F24; --muted:#77778A;
+  --accent:#6B46C1; --accent-bg:#F3EEFF; --red:#D64545; --red-bg:#FDECEC; --ok:#1F7A45;
+  --g5:#1F7A45; --g5-bg:#E6F6EC; --g5-pill:#C5EBD3;
+  --g6:#1E4E8C; --g6-bg:#EAF3FF; --g6-pill:#C6DEFF;
+  --g7:#4C2E96; --g7-bg:#F1EAFF; --g7-pill:#D9C8FF;
+  --g8:#8A4A12; --g8-bg:#FFF1E6; --g8-pill:#FFD7B5;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;font-size:16px}
+body{padding-top:var(--safe-t)}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+#main{max-width:640px;margin:0 auto;padding:8px 16px calc(96px + var(--safe-b))}
+.g5{--c:var(--g5);--cbg:var(--g5-bg);--cp:var(--g5-pill)}
+.g6{--c:var(--g6);--cbg:var(--g6-bg);--cp:var(--g6-pill)}
+.g7{--c:var(--g7);--cbg:var(--g7-bg);--cp:var(--g7-pill)}
+.g8{--c:var(--g8);--cbg:var(--g8-bg);--cp:var(--g8-pill)}
+
+/* başlık */
+.bar{display:flex;align-items:center;gap:8px;padding:10px 0 6px;position:sticky;top:0;background:var(--bg);z-index:5}
+.bar h1{font-size:26px;margin:0;flex:1;letter-spacing:-.02em}
+.sub{color:var(--muted);font-size:13px}
+.iconbtn{border:none;background:var(--bg2);width:38px;height:38px;border-radius:12px;font-size:18px;display:grid;place-items:center;flex:none}
+.back{border:none;background:none;color:var(--accent);font-size:16px;padding:6px 0;font-weight:600}
+
+/* kartlar */
+.card{border-radius:18px;padding:14px 16px;margin:10px 0;background:var(--bg2)}
+.card.cls{background:var(--cbg)}
+.lbl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--c,var(--muted))}
+.big{font-size:34px;font-weight:800;letter-spacing:-.02em;color:var(--c,var(--text));line-height:1.1;margin:4px 0 2px}
+.kz{font-size:15px;line-height:1.4;margin-top:10px}
+.kz b{display:block;font-size:12px;color:var(--c,var(--muted));margin-bottom:2px}
+.muted{color:var(--muted)}
+.h2{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:22px 4px 6px}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn{border:none;border-radius:12px;padding:10px 14px;font-weight:600;font-size:15px;background:var(--cp,var(--accent-bg));color:var(--c,var(--accent))}
+.btn.solid{background:var(--c,var(--accent));color:#fff}
+.btn.full{width:100%;padding:13px}
+.btn.danger{background:var(--red-bg);color:var(--red)}
+.btn:disabled{opacity:.4}
+
+/* listeler */
+.list{background:var(--bg);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.row{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);background:var(--bg);width:100%;text-align:left;border-left:none;border-right:none;border-top:none}
+.row:last-child{border-bottom:none}
+.row .grow{flex:1;min-width:0}
+.row .t{font-weight:600}
+.row .s{font-size:13px;color:var(--muted);margin-top:1px}
+.no{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px;width:34px;flex:none}
+.pill{display:inline-block;font-weight:700;font-size:13px;padding:3px 9px;border-radius:9px;background:var(--cp);color:var(--c)}
+.badge{font-size:12px;font-weight:600;padding:2px 8px;border-radius:8px;background:var(--bg2);color:var(--muted);flex:none}
+.badge.red{background:var(--red-bg);color:var(--red)}
+.badge.ok{background:var(--g5-bg);color:var(--g5)}
+.past{opacity:.45}
+.now{outline:2px solid var(--c);outline-offset:-2px}
+.chev{color:#C4C4CF;flex:none}
+
+/* sınıf ızgarası */
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.tile{border:none;border-radius:14px;padding:14px 0;background:var(--cbg);color:var(--c);font-weight:800;font-size:18px}
+.tile small{display:block;font-weight:500;font-size:11px;opacity:.8;margin-top:2px}
+
+/* çipler */
+.chips{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{border:none;border-radius:10px;padding:7px 11px;font-weight:700;font-size:14px;background:var(--cbg,var(--bg2));color:var(--c,var(--text));flex:none;white-space:nowrap}
+.chip.on{background:var(--c,var(--accent));color:#fff}
+.seg{display:flex;background:var(--bg2);border-radius:12px;padding:3px;gap:2px}
+.seg button{flex:1;border:none;background:none;border-radius:9px;padding:7px 4px;font-size:13px;font-weight:600;color:var(--muted)}
+.seg button.on{background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+/* not girişi */
+.grade{width:62px;height:40px;border:1.5px solid var(--line);border-radius:10px;text-align:center;font-size:17px;font-weight:700;background:#fff;flex:none}
+.grade:focus{outline:none;border-color:var(--c,var(--accent))}
+.grade.bad{border-color:var(--red);background:var(--red-bg)}
+.gk{border:none;background:var(--bg2);color:var(--muted);border-radius:8px;width:30px;height:32px;font-size:13px;font-weight:700;flex:none}
+.nameBtn{border:none;background:none;padding:0;text-align:left;flex:1;min-width:0}
+
+/* yoklama */
+.att.absent{background:var(--red-bg)}
+.att .mark{width:52px;text-align:center;font-weight:700;font-size:13px;border-radius:8px;padding:5px 0;background:var(--g5-bg);color:var(--g5);flex:none}
+.att.absent .mark{background:var(--red);color:#fff}
+
+/* alt sekmeler */
+nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 4px calc(6px + var(--safe-b));z-index:20}
+nav button{border:none;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10.5px;font-weight:600;color:#9A9AAC;width:64px;padding:4px 0}
+nav button svg{width:24px;height:24px}
+nav button.on{color:var(--accent)}
+
+/* alt sayfa (sheet) */
+.ov{position:fixed;inset:0;background:rgba(20,20,30,.35);z-index:40;display:flex;align-items:flex-end;justify-content:center;animation:fade .15s}
+.sheet{background:#fff;width:100%;max-width:640px;border-radius:22px 22px 0 0;padding:18px 16px calc(18px + var(--safe-b));max-height:92vh;overflow:auto;animation:up .2s ease-out}
+.sheet h3{margin:0 0 10px;font-size:20px}
+@keyframes up{from{transform:translateY(40px);opacity:.5}}
+@keyframes fade{from{opacity:0}}
+textarea,.inp{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font-size:16px;background:#fff}
+textarea{min-height:90px;resize:vertical}
+textarea:focus,.inp:focus{outline:none;border-color:var(--accent)}
+.photo{width:100%;max-width:280px;aspect-ratio:3/4;object-fit:cover;border-radius:16px;display:block;margin:6px auto 10px;background:var(--bg2)}
+.toast{position:fixed;left:50%;bottom:calc(90px + var(--safe-b));transform:translateX(-50%);background:#1F1F24;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;z-index:60;max-width:90vw;text-align:center;animation:fade .15s}
+.empty{text-align:center;color:var(--muted);padding:28px 12px;font-size:15px;line-height:1.5}
+.note{background:var(--bg2);border-radius:12px;padding:10px 12px;margin:6px 0;font-size:15px;line-height:1.4;white-space:pre-wrap}
+.note .d{font-size:12px;color:var(--muted);margin-bottom:3px;display:flex;justify-content:space-between}
+.note .x{border:none;background:none;color:var(--muted);padding:0 2px}
+.fields{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
+.fields div{background:var(--bg2);border-radius:10px;padding:8px;text-align:center}
+.fields b{display:block;font-size:18px}
+.fields span{font-size:11px;color:var(--muted)}
+.warn{background:#FFF7E0;color:#7A5A00;border-radius:14px;padding:12px 14px;font-size:14px;margin:10px 0}
+details.week{border-radius:14px;background:var(--bg2);margin:8px 0;padding:0 14px}
+details.week[open]{background:var(--cbg)}
+details.week summary{list-style:none;padding:12px 0;font-weight:600;display:flex;gap:8px;align-items:baseline}
+details.week summary::-webkit-details-marker{display:none}
+details.week .fld{padding:0 0 10px;font-size:14.5px;line-height:1.4;white-space:pre-wrap}
+details.week .fld b{display:block;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--c)}
+.cur-tag{font-size:11px;background:var(--c);color:#fff;border-radius:6px;padding:1px 6px;font-weight:700}
+label.lab{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:12px 2px 4px}
+</style>
+</head>
+<body>
+<div id="main"></div>
+<nav id="nav"></nav>
+<input type="file" id="fileIn" accept=".json,application/json" hidden>
+
+<script src="plan.js"></script>
+<script>
+'use strict';
+/* ================= Sabit bilgiler ================= */
+const SURUM = '1.0';
+const SAATLER = {1:['08:30','09:10'],2:['09:25','10:05'],3:['10:20','11:00'],4:['11:15','11:55'],5:['12:25','13:05'],6:['13:20','14:00'],7:['14:15','14:55']};
+const PROGRAM = {
+  1:{1:'7/B',2:'7/E',3:'7/C',4:'6/B',5:'8/D',6:'5/A',7:'8/A'},
+  2:{1:'7/D',3:'7/A',5:'8/B',7:'5/E'},
+  3:{},
+  4:{5:'5/C',6:'6/A',7:'6/D'},
+  5:{2:'5/D',3:'8/C',4:'8/E',5:'6/E',6:'6/C',7:'5/B'}
+};
+const SINIFLAR = [5,6,7,8].flatMap(s => ['A','B','C','D','E'].map(b => `${s}/${b}`));
+const SUTUNLAR = [
+  {k:'urun', ad:'Öğrenci Ürün Dosyası',            kisa:'Ürün Dosyası'},
+  {k:'e1',   ad:'1. Ders Etkinliklerine Katılım',  kisa:'1. Etkinlik'},
+  {k:'e2',   ad:'2. Ders Etkinliklerine Katılım',  kisa:'2. Etkinlik'},
+];
+const GUNLER = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+const AYLAR = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+
+/* ================= Depolama (IndexedDB, sadece bu telefonda) ================= */
+const DB = (() => {
+  let p;
+  const open = () => p || (p = new Promise((res, rej) => {
+    const r = indexedDB.open('derslerim', 1);
+    r.onupgradeneeded = () => { r.result.createObjectStore('kv'); r.result.createObjectStore('foto'); };
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  }));
+  const run = async (store, mode, fn) => {
+    const db = await open();
+    return new Promise((res, rej) => {
+      const t = db.transaction(store, mode);
+      const req = fn(t.objectStore(store));
+      t.oncomplete = () => res(req ? req.result : undefined);
+      t.onerror = () => rej(t.error);
+    });
+  };
+  return {
+    get: (s, k) => run(s, 'readonly', o => o.get(k)),
+    set: (s, k, v) => run(s, 'readwrite', o => o.put(v, k)),
+    del: (s, k) => run(s, 'readwrite', o => o.delete(k)),
+    clear: s => run(s, 'readwrite', o => o.clear()),
+    count: s => run(s, 'readonly', o => o.count()),
+  };
+})();
+
+const ANAHTARLAR = ['ogrenciler','notlar','yoklama','ogrNot','odevler','kaldik','sonYedek'];
+const S = {};   // bellekteki veriler
+async function yukle() {
+  for (const k of ANAHTARLAR) S[k] = (await DB.get('kv', k)) ?? (k === 'odevler' ? [] : k === 'sonYedek' ? null : {});
+  S.fotoSayisi = await DB.count('foto');
+}
+function kaydet(k) { return DB.set('kv', k, S[k]).catch(e => toast('Kaydedilemedi: ' + e.message)); }
+
+/* ================= Yardımcılar ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const g = sinif => 'g' + sinif[0];
+const bugunStr = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const tarihYaz = s => { const [y,m,d] = s.split('-').map(Number); const t = new Date(y, m-1, d); return `${d} ${AYLAR[m-1]} ${GUNLER[t.getDay()]}`; };
+const kisaTarih = s => { const [, m, d] = s.split('-').map(Number); return `${d} ${AYLAR[m-1]}`; };
+const dk = hhmm => { const [h, m] = hhmm.split(':').map(Number); return h*60 + m; };
+const ogrenciler = sinif => S.ogrenciler[sinif] || [];
+const donemVarsayilan = () => { const m = new Date().getMonth() + 1; return (m >= 9 || m === 1) ? '1' : '2'; };
+let DONEM = donemVarsayilan();
+
+function toast(msg) {
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 2600);
+}
+function sheet(html, onMount) {
+  kapatSheet();
+  const ov = document.createElement('div'); ov.className = 'ov'; ov.id = 'ov';
+  ov.innerHTML = `<div class="sheet">${html}</div>`;
+  ov.addEventListener('click', e => { if (e.target === ov) kapatSheet(); });
+  document.body.appendChild(ov);
+  onMount && onMount(ov.firstElementChild);
+}
+function kapatSheet() { $('#ov')?.remove(); }
+function dosyaSec() {
+  return new Promise(res => {
+    const f = $('#fileIn'); f.value = '';
+    f.onchange = () => res(f.files[0] || null);
+    f.click();
+  });
+}
+
+/* ---------- Plan ve ders saatleri ---------- */
+function haftaBul(sinif, tarih = new Date()) {
+  const liste = (window.PLAN || {})[sinif[0]] || [];
+  const gun = new Date(tarih.getFullYear(), tarih.getMonth(), tarih.getDate());
+  return liste.find(h => { const [y,m,d] = h.bas.split('-').map(Number); const b = new Date(y, m-1, d); return gun >= b && gun <= new Date(y, m-1, d+6); }) || null;
+}
+function alan(h, ...adlar) { if (!h) return ''; for (const a of adlar) { const f = h.alanlar.find(x => x.baslik === a); if (f) return f.metin; } return ''; }
+const kazanim = h => alan(h, 'Kazanım', 'Öğrenme Çıktısı');
+const konu = h => alan(h, 'Konu', 'İçerik Çerçevesi');
+
+function gununDersleri(d = new Date()) {
+  const p = PROGRAM[d.getDay()] || {};
+  return Object.keys(p).map(Number).sort((a,b) => a-b).map(no => ({no, sinif:p[no], bas:SAATLER[no][0], bit:SAATLER[no][1]}));
+}
+function anlikDers(d = new Date()) {
+  const simdi = d.getHours()*60 + d.getMinutes();
+  const list = gununDersleri(d);
+  const su = list.find(x => simdi >= dk(x.bas) && simdi < dk(x.bit));
+  if (su) return {...su, durum:'simdi'};
+  const sonraki = list.find(x => dk(x.bas) > simdi);
+  return sonraki ? {...sonraki, durum:'sonraki'} : null;
+}
+function sonrakiDersGunu(d = new Date()) {
+  for (let i = 1; i <= 7; i++) {
+    const t = new Date(d.getFullYear(), d.getMonth(), d.getDate() + i);
+    const l = gununDersleri(t);
+    if (l.length) return {tarih:t, ders:l[0]};
+  }
+  return null;
+}
+
+/* ---------- Devamsızlık ---------- */
+function devamsizlik(sinif, no) {
+  const out = [];
+  for (const [k, v] of Object.entries(S.yoklama)) { const [t, s] = k.split('|'); if (s === sinif && v.includes(String(no))) out.push(t); }
+  return out.sort().reverse();
+}
+
+/* ================= Gezinme ================= */
+const SEKMELER = [
+  {k:'bugun',    ad:'Bugün',    ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>'},
+  {k:'siniflar', ad:'Sınıflar', ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>'},
+  {k:'notlar',   ad:'Notlar',   ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>'},
+  {k:'odevler',  ad:'Ödevler',  ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>'},
+  {k:'plan',     ad:'Plan',     ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20V3H6.5A2.5 2.5 0 004 5.5z"/><path d="M4 19.5A2.5 2.5 0 006.5 22H20v-5"/></svg>'},
+];
+let yigin = [];   // [{v, p}]
+function git(v, p = {}, yeni = true) {
+  if (yeni) yigin.push({v, p}); else yigin = [{v, p}];
+  ciz();
+}
+function geri() { if (yigin.length > 1) { yigin.pop(); ciz(); } }
+function ciz() {
+  const {v, p} = yigin[yigin.length - 1];
+  const sekme = SEKMELER.find(s => s.k === v) ? v : (yigin[0]?.v);
+  $('#nav').innerHTML = SEKMELER.map(s => `<button class="${s.k === sekme ? 'on' : ''}" onclick="git('${s.k}',{},false)">${s.ic}${s.ad}</button>`).join('');
+  $('#main').innerHTML = (GORUNUM[v] || GORUNUM.bugun)(p);
+  window.scrollTo(0, 0);
+  SONRA.forEach(f => f()); SONRA = [];
+}
+let SONRA = [];
+const geriBtn = () => yigin.length > 1 ? `<button class="back" onclick="geri()">‹ Geri</button>` : '';
+
+/* ================= Görünümler ================= */
+const GORUNUM = {};
+
+/* ---------- Bugün ---------- */
+GORUNUM.bugun = () => {
+  const d = new Date();
+  const h7 = haftaBul('7/A', d);
+  const a = anlikDers(d);
+  let html = `<div class="bar"><div style="flex:1"><div class="sub">${tarihYaz(bugunStr(d))}${h7 ? ' · ' + esc(h7.hafta) : ''}</div><h1>Bugün</h1></div>
+    <button class="iconbtn" onclick="git('ayarlar')" aria-label="Ayarlar">⚙︎</button></div>`;
+
+  if (!Object.keys(S.ogrenciler).length) html += `<div class="warn">Öğrenci listeleri henüz yüklenmedi. <a href="#" onclick="git('ayarlar');return false">Ayarlar</a>'dan liste dosyasını yükleyin.</div>`;
+  else if (yedekHatirlat()) html += `<div class="warn">Son yedeğin üzerinden 7 günden fazla geçti. <a href="#" onclick="yedekAl();return false">Şimdi yedek al</a></div>`;
+
+  if (a) {
+    const h = haftaBul(a.sinif, d);
+    const kal = S.kaldik[a.sinif];
+    html += `<div class="card cls ${g(a.sinif)}">
+      <div class="lbl">${a.durum === 'simdi' ? 'Şimdi' : 'Sıradaki'} · ${a.no}. ders</div>
+      <div class="big">${a.sinif}</div>
+      <div class="sub">${a.bas} – ${a.bit} · Görsel Sanatlar</div>
+      ${h ? `<div class="kz"><b>${esc(konu(h))}</b>${esc(kazanim(h))}</div>` : `<div class="kz muted">Bu hafta planda ders yok (tatil).</div>`}
+      ${kal ? `<div class="kz"><b>Nerede kaldık · ${kisaTarih(kal.t)}</b>${esc(kal.m)}</div>` : ''}
+      <div class="btnrow">
+        <button class="btn solid" onclick="git('yoklama',{sinif:'${a.sinif}'})">Yoklama</button>
+        <button class="btn" onclick="kaldikDuzenle('${a.sinif}')">Nerede kaldık</button>
+        <button class="btn" onclick="git('sinif',{sinif:'${a.sinif}'})">Sınıf</button>
+      </div></div>`;
+  }
+
+  const list = gununDersleri(d);
+  if (list.length) {
+    const simdi = d.getHours()*60 + d.getMinutes();
+    html += `<div class="h2">Bugünkü derslerim</div><div class="list">` + list.map(x => {
+      const gecti = simdi >= dk(x.bit), su = simdi >= dk(x.bas) && !gecti;
+      const yok = (S.yoklama[`${bugunStr(d)}|${x.sinif}`] || []).length;
+      return `<button class="row ${g(x.sinif)} ${gecti ? 'past' : ''} ${su ? 'now' : ''}" onclick="git('sinif',{sinif:'${x.sinif}'})">
+        <span class="no">${x.no}.</span><span class="grow"><span class="t">${x.bas} – ${x.bit}</span></span>
+        ${yok ? `<span class="badge red">${yok} yok</span>` : ''}<span class="pill">${x.sinif}</span><span class="chev">›</span></button>`;
+    }).join('') + `</div>`;
+  } else {
+    const s = sonrakiDersGunu(d);
+    html += `<div class="empty">🎨<br>Bugün dersiniz yok.${s ? `<br>Sıradaki ders: <b>${GUNLER[s.tarih.getDay()]} ${s.ders.bas}</b>, <span class="${g(s.ders.sinif)}"><span class="pill">${s.ders.sinif}</span></span>` : ''}</div>`;
+  }
+  const acik = S.odevler.filter(o => !o.bitti);
+  if (acik.length) html += `<div class="h2">Açık ödev / malzeme</div><div class="list">` + acik.slice(0, 4).map(odevSatir).join('') + `</div>`;
+  return html;
+};
+
+/* ---------- Sınıflar ---------- */
+GORUNUM.siniflar = () => {
+  let html = `<div class="bar"><h1>Sınıflar</h1></div>`;
+  for (const s of [5,6,7,8]) {
+    html += `<div class="h2">${s}. sınıflar</div><div class="grid">` + SINIFLAR.filter(x => x[0] == s).map(x =>
+      `<button class="tile ${g(x)}" onclick="git('sinif',{sinif:'${x}'})">${x}<small>${ogrenciler(x).length || '–'} öğr.</small></button>`).join('') + `</div>`;
+  }
+  return html;
+};
+
+GORUNUM.sinif = ({sinif}) => {
+  const h = haftaBul(sinif);
+  const ogr = ogrenciler(sinif);
+  const kal = S.kaldik[sinif];
+  const odev = S.odevler.filter(o => o.sinif === sinif && !o.bitti);
+  const ders = Object.entries(PROGRAM).flatMap(([gun, p]) => Object.entries(p).filter(([, s]) => s === sinif).map(([no]) => `${GUNLER[gun]} ${no}. ders`));
+  let html = `${geriBtn()}<div class="${g(sinif)}">
+    <div class="bar"><div style="flex:1"><div class="sub">${ders.join(', ')}</div><h1 style="color:var(--c)">${sinif}</h1></div></div>
+    <div class="card cls">
+      <div class="lbl">Bu hafta${h ? ' · ' + esc(h.hafta) : ''}</div>
+      ${h ? `<div class="kz"><b>${esc(konu(h))}</b>${esc(kazanim(h))}</div>` : `<div class="kz muted">Bu hafta planda ders yok.</div>`}
+      <div class="kz"><b>Nerede kaldık${kal ? ' · ' + kisaTarih(kal.t) : ''}</b>${kal ? esc(kal.m) : '<span class="muted">Henüz not yok</span>'}</div>
+      <div class="btnrow">
+        <button class="btn solid" onclick="git('yoklama',{sinif:'${sinif}'})">Yoklama</button>
+        <button class="btn" onclick="kaldikDuzenle('${sinif}')">Nerede kaldık</button>
+        <button class="btn" onclick="git('notlar',{sinif:'${sinif}'})">Not gir</button>
+        <button class="btn" onclick="odevYeni('${sinif}')">+ Ödev</button>
+      </div>
+    </div>`;
+  if (odev.length) html += `<div class="h2">Ödev / malzeme</div><div class="list">${odev.map(odevSatir).join('')}</div>`;
+  html += `<div class="h2">Öğrenciler (${ogr.length})</div>`;
+  if (!ogr.length) html += `<div class="empty">Bu sınıfın listesi yüklenmedi.</div>`;
+  else html += `<div class="list">` + ogr.map(o => {
+    const dv = devamsizlik(sinif, o.no).length;
+    const nt = (S.ogrNot[`${sinif}|${o.no}`] || []).length;
+    return `<button class="row" onclick="git('ogrenci',{sinif:'${sinif}',no:'${esc(o.no)}'})"><span class="no">${esc(o.no)}</span>
+      <span class="grow t">${esc(o.ad)}</span>${nt ? `<span class="badge">📝 ${nt}</span>` : ''}${dv ? `<span class="badge red">${dv} gün yok</span>` : ''}<span class="chev">›</span></button>`;
+  }).join('') + `</div>`;
+  return html + `</div>`;
+};
+
+GORUNUM.ogrenci = ({sinif, no}) => {
+  const o = ogrenciler(sinif).find(x => String(x.no) === String(no)) || {no, ad:'?'};
+  const notlar = S.notlar[DONEM]?.[sinif]?.[no] || {};
+  const dv = devamsizlik(sinif, no);
+  const on = S.ogrNot[`${sinif}|${no}`] || [];
+  return `${geriBtn()}<div class="${g(sinif)}">
+    <div class="bar"><div style="flex:1"><div class="sub"><span class="pill">${sinif}</span> · No ${esc(no)}</div><h1>${esc(o.ad)}</h1></div></div>
+    <button class="btn full" onclick="fotoGoster('${sinif}','${esc(no)}')">Fotoğrafı göster</button>
+    <div class="h2">Notlar · ${DONEM}. dönem</div>
+    <div class="fields">${SUTUNLAR.map(c => `<div><b>${esc(notlar[c.k] || '–')}</b><span>${c.kisa}</span></div>`).join('')}</div>
+    <div class="h2">Devamsızlık (${dv.length})</div>
+    ${dv.length ? `<div class="card">${dv.map(kisaTarih).join(' · ')}</div>` : `<div class="card muted">Devamsızlığı yok.</div>`}
+    <div class="h2">Öğrenci hakkında notlarım</div>
+    ${on.map((n, i) => `<div class="note"><div class="d"><span>${kisaTarih(n.t)}</span><button class="x" onclick="ogrNotSil('${sinif}','${esc(no)}',${i})">Sil</button></div>${esc(n.m)}</div>`).join('')}
+    <textarea id="yeniNot" placeholder="Örn. malzeme getirmedi, çok yetenekli…"></textarea>
+    <div class="btnrow"><button class="btn solid" onclick="ogrNotEkle('${sinif}','${esc(no)}')">Notu ekle</button></div>
+  </div>`;
+};
+
+async function fotoGoster(sinif, no) {
+  const o = ogrenciler(sinif).find(x => String(x.no) === String(no));
+  const f = await DB.get('foto', `${sinif}|${no}`);
+  sheet(`<h3>${esc(o?.ad || '')} <span class="muted" style="font-size:14px">${sinif} · ${esc(no)}</span></h3>
+    ${f ? `<img class="photo" src="${f}" alt="">` : `<div class="empty">Bu öğrencinin fotoğrafı yüklenmemiş.</div>`}
+    <button class="btn full" onclick="kapatSheet()">Kapat</button>`);
+}
+function ogrNotEkle(sinif, no) {
+  const m = $('#yeniNot').value.trim(); if (!m) return;
+  const k = `${sinif}|${no}`; (S.ogrNot[k] ||= []).unshift({t: bugunStr(), m});
+  kaydet('ogrNot'); ciz(); toast('Not eklendi');
+}
+function ogrNotSil(sinif, no, i) {
+  if (!confirm('Bu not silinsin mi?')) return;
+  const k = `${sinif}|${no}`; S.ogrNot[k].splice(i, 1); if (!S.ogrNot[k].length) delete S.ogrNot[k];
+  kaydet('ogrNot'); ciz();
+}
+function kaldikDuzenle(sinif) {
+  const kal = S.kaldik[sinif];
+  sheet(`<h3>${sinif} · Nerede kaldık?</h3>
+    <textarea id="kaldikTxt" placeholder="Örn. kolaj çalışmasının yarısında kaldık, gelecek hafta renklendirme">${esc(kal?.m || '')}</textarea>
+    <div class="btnrow"><button class="btn solid" style="flex:1" onclick="kaldikKaydet('${sinif}')">Kaydet</button><button class="btn" onclick="kapatSheet()">Vazgeç</button></div>`,
+    el => el.querySelector('textarea').focus());
+}
+function kaldikKaydet(sinif) {
+  const m = $('#kaldikTxt').value.trim();
+  if (m) S.kaldik[sinif] = {t: bugunStr(), m}; else delete S.kaldik[sinif];
+  kaydet('kaldik'); kapatSheet(); ciz(); toast('Kaydedildi');
+}
+
+/* ---------- Yoklama ---------- */
+GORUNUM.yoklama = ({sinif, tarih}) => {
+  tarih = tarih || bugunStr();
+  const k = `${tarih}|${sinif}`;
+  const yok = S.yoklama[k] || [];
+  const ogr = ogrenciler(sinif);
+  return `${geriBtn()}<div class="${g(sinif)}">
+    <div class="bar"><div style="flex:1"><div class="sub">Yoklama · ${tarihYaz(tarih)}</div><h1 style="color:var(--c)">${sinif}</h1></div>
+      <input type="date" class="inp" style="width:auto" value="${tarih}" onchange="yigin[yigin.length-1].p.tarih=this.value;ciz()"></div>
+    <div class="card cls" style="display:flex;justify-content:space-between;align-items:center">
+      <span><b style="font-size:22px">${ogr.length - yok.length}</b> <span class="muted">var</span> &nbsp; <b style="font-size:22px;color:var(--red)">${yok.length}</b> <span class="muted">yok</span></span>
+      <span class="sub">Gelmeyene dokunun</span></div>
+    ${ogr.length ? `<div class="list">` + ogr.map(o => `<button class="row att ${yok.includes(String(o.no)) ? 'absent' : ''}" onclick="yoklamaDegis('${k}','${esc(o.no)}')">
+      <span class="no">${esc(o.no)}</span><span class="grow t">${esc(o.ad)}</span><span class="mark">${yok.includes(String(o.no)) ? 'YOK' : 'Var'}</span></button>`).join('') + `</div>`
+      : `<div class="empty">Bu sınıfın listesi yüklenmedi.</div>`}
+  </div>`;
+};
+function yoklamaDegis(k, no) {
+  const a = S.yoklama[k] ||= [];
+  const i = a.indexOf(String(no)); i >= 0 ? a.splice(i, 1) : a.push(String(no));
+  if (!a.length) delete S.yoklama[k];
+  kaydet('yoklama'); const y = window.scrollY; ciz(); window.scrollTo(0, y);
+}
+
+/* ---------- Not girişi (sütun sütun) ---------- */
+let NOT_SINIF = null, NOT_SUTUN = 'e1';
+GORUNUM.notlar = (p = {}) => {
+  if (p.sinif) NOT_SINIF = p.sinif;
+  if (!NOT_SINIF) NOT_SINIF = anlikDers()?.sinif || '5/A';
+  const sinif = NOT_SINIF, sut = SUTUNLAR.find(c => c.k === NOT_SUTUN);
+  const ogr = ogrenciler(sinif);
+  const veri = S.notlar[DONEM]?.[sinif] || {};
+  const dolu = ogr.filter(o => veri[o.no]?.[NOT_SUTUN]).length;
+  SONRA.push(() => document.querySelectorAll('.chips .chip.on').forEach(c => c.parentElement.scrollLeft = c.offsetLeft - c.parentElement.clientWidth / 2 + c.clientWidth / 2));
+  SONRA.push(() => document.querySelectorAll('.grade').forEach((el, i, all) => {
+    el.addEventListener('change', () => notYaz(el));
+    el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); notYaz(el); (all[i+1] || el).focus(); if (!all[i+1]) el.blur(); } });
+  }));
+  return `${geriBtn()}<div class="bar"><h1>Not girişi</h1></div>
+    <div class="seg" style="margin-bottom:8px">${['1','2'].map(d => `<button class="${DONEM === d ? 'on' : ''}" onclick="DONEM='${d}';ciz()">${d}. Dönem</button>`).join('')}</div>
+    <div class="chips">${SINIFLAR.map(s => `<button class="chip ${g(s)} ${s === sinif ? 'on' : ''}" onclick="NOT_SINIF='${s}';ciz()">${s}</button>`).join('')}</div>
+    <div class="chips">${SUTUNLAR.map(c => `<button class="chip ${c.k === NOT_SUTUN ? 'on' : ''}" onclick="NOT_SUTUN='${c.k}';ciz()">${c.kisa}</button>`).join('')}</div>
+    <div class="${g(sinif)}">
+    <div class="card cls" style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px">
+      <span><b style="color:var(--c)">${sinif}</b> · ${sut.ad}</span><span class="badge ${dolu === ogr.length && ogr.length ? 'ok' : ''}">${dolu}/${ogr.length}</span></div>
+    ${ogr.length ? `<div class="list">` + ogr.map(o => `<div class="row"><span class="no">${esc(o.no)}</span>
+        <button class="nameBtn t" onclick="fotoGoster('${sinif}','${esc(o.no)}')">${esc(o.ad)}</button>
+        <button class="gk" onclick="notHizli(this,'G')">G</button><button class="gk" onclick="notHizli(this,'K')">K</button>
+        <input class="grade" inputmode="numeric" enterkeyhint="next" maxlength="3" autocomplete="off" data-no="${esc(o.no)}" value="${esc(veri[o.no]?.[NOT_SUTUN] || '')}"></div>`).join('') + `</div>
+      <p class="sub" style="text-align:center;margin-top:12px">0–100 arası puan · Girmedi: <b>G</b> · Kopya: <b>K</b><br>İsme dokununca fotoğraf açılır.</p>`
+      : `<div class="empty">Bu sınıfın listesi yüklenmedi.</div>`}
+  </div>`;
+};
+function notGecerli(v) { return v === '' || v === 'G' || v === 'K' || (/^\d{1,3}$/.test(v) && +v <= 100); }
+function notYaz(el) {
+  const v = el.value.trim().toUpperCase(); el.value = v;
+  if (!notGecerli(v)) { el.classList.add('bad'); toast('0–100 arası sayı, G veya K girin'); return; }
+  el.classList.remove('bad');
+  const d = S.notlar[DONEM] ||= {}, s = d[NOT_SINIF] ||= {}, o = s[el.dataset.no] ||= {};
+  if (v) o[NOT_SUTUN] = v; else delete o[NOT_SUTUN];
+  kaydet('notlar');
+  const ogr = ogrenciler(NOT_SINIF), dolu = ogr.filter(x => s[x.no]?.[NOT_SUTUN]).length;
+  const b = document.querySelector('.card .badge'); if (b) { b.textContent = `${dolu}/${ogr.length}`; b.classList.toggle('ok', dolu === ogr.length); }
+}
+function notHizli(btn, harf) { const el = btn.parentElement.querySelector('.grade'); el.value = harf; notYaz(el); }
+
+/* ---------- Ödev / malzeme ---------- */
+function odevSatir(o) {
+  const n = ogrenciler(o.sinif).length, gt = o.getiren.length;
+  return `<button class="row ${g(o.sinif)}" onclick="git('odev',{id:'${o.id}'})"><span class="pill">${o.sinif}</span>
+    <span class="grow"><span class="t">${o.tur === 'malzeme' ? '🎒 ' : '📄 '}${esc(o.baslik)}</span><span class="s" style="display:block">${o.teslim ? 'Teslim: ' + kisaTarih(o.teslim) : 'Verildi: ' + kisaTarih(o.t)}</span></span>
+    <span class="badge ${n && gt === n ? 'ok' : ''}">${gt}/${n}</span><span class="chev">›</span></button>`;
+}
+GORUNUM.odevler = () => {
+  const acik = S.odevler.filter(o => !o.bitti), biten = S.odevler.filter(o => o.bitti);
+  return `<div class="bar"><h1 style="flex:1">Ödev / Malzeme</h1><button class="btn solid" onclick="odevYeni()">+ Yeni</button></div>
+    ${acik.length ? `<div class="list">${acik.map(odevSatir).join('')}</div>` : `<div class="empty">Açık ödev ya da malzeme yok.</div>`}
+    ${biten.length ? `<div class="h2">Tamamlananlar</div><div class="list">${biten.map(odevSatir).join('')}</div>` : ''}`;
+};
+function odevYeni(sinif) {
+  const secili = new Set(sinif ? [sinif] : []);
+  sheet(`<h3>Yeni ödev / malzeme</h3>
+    <div class="seg" id="odTur"><button class="on" data-v="odev">📄 Ödev</button><button data-v="malzeme">🎒 Malzeme</button></div>
+    <label class="lab">Ne?</label><input class="inp" id="odBaslik" placeholder="Örn. Sulu boya ve fırça getir">
+    <label class="lab">Teslim / getirme tarihi (isteğe bağlı)</label><input class="inp" id="odTeslim" type="date">
+    <label class="lab">Hangi sınıflar?</label>
+    <div class="chips" style="flex-wrap:wrap" id="odSiniflar">${SINIFLAR.map(s => `<button class="chip ${g(s)} ${secili.has(s) ? 'on' : ''}" data-s="${s}">${s}</button>`).join('')}</div>
+    <div class="btnrow"><button class="btn solid" style="flex:1" id="odKaydet">Ekle</button><button class="btn" onclick="kapatSheet()">Vazgeç</button></div>`,
+  el => {
+    el.querySelectorAll('#odTur button').forEach(b => b.onclick = () => { el.querySelectorAll('#odTur button').forEach(x => x.classList.remove('on')); b.classList.add('on'); });
+    el.querySelectorAll('#odSiniflar .chip').forEach(b => b.onclick = () => { b.classList.toggle('on'); secili.has(b.dataset.s) ? secili.delete(b.dataset.s) : secili.add(b.dataset.s); });
+    el.querySelector('#odKaydet').onclick = () => {
+      const baslik = $('#odBaslik').value.trim();
+      if (!baslik) return toast('Ödevin ne olduğunu yazın');
+      if (!secili.size) return toast('En az bir sınıf seçin');
+      const tur = el.querySelector('#odTur .on').dataset.v, teslim = $('#odTeslim').value || null;
+      for (const s of SINIFLAR.filter(x => secili.has(x)))
+        S.odevler.unshift({id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), sinif: s, tur, baslik, teslim, t: bugunStr(), getiren: [], bitti: false});
+      kaydet('odevler'); kapatSheet(); ciz(); toast(`${secili.size} sınıfa eklendi`);
+    };
+  });
+}
+GORUNUM.odev = ({id}) => {
+  const o = S.odevler.find(x => x.id === id);
+  if (!o) return `${geriBtn()}<div class="empty">Bu kayıt silinmiş.</div>`;
+  const ogr = ogrenciler(o.sinif);
+  return `${geriBtn()}<div class="${g(o.sinif)}">
+    <div class="bar"><div style="flex:1"><div class="sub"><span class="pill">${o.sinif}</span> · ${o.tur === 'malzeme' ? 'Malzeme' : 'Ödev'} · ${kisaTarih(o.t)}${o.teslim ? ' → ' + kisaTarih(o.teslim) : ''}</div><h1>${esc(o.baslik)}</h1></div></div>
+    <div class="card cls" style="display:flex;justify-content:space-between;align-items:center">
+      <span><b style="font-size:22px;color:var(--c)">${o.getiren.length}</b> <span class="muted">/ ${ogr.length} ${o.tur === 'malzeme' ? 'getirdi' : 'yaptı'}</span></span><span class="sub">Getirene dokunun</span></div>
+    ${ogr.length ? `<div class="list">` + ogr.map(x => { const v = o.getiren.includes(String(x.no));
+      return `<button class="row" onclick="odevIsaretle('${o.id}','${esc(x.no)}')"><span class="no">${esc(x.no)}</span><span class="grow t">${esc(x.ad)}</span>
+      <span class="badge ${v ? 'ok' : ''}">${v ? '✓ ' + (o.tur === 'malzeme' ? 'Getirdi' : 'Yaptı') : '—'}</span></button>`; }).join('') + `</div>` : `<div class="empty">Bu sınıfın listesi yüklenmedi.</div>`}
+    <div class="btnrow" style="margin-top:16px"><button class="btn" style="flex:1" onclick="odevBitir('${o.id}')">${o.bitti ? 'Yeniden aç' : 'Tamamlandı olarak işaretle'}</button>
+      <button class="btn danger" onclick="odevSil('${o.id}')">Sil</button></div>
+  </div>`;
+};
+function odevIsaretle(id, no) {
+  const o = S.odevler.find(x => x.id === id); const i = o.getiren.indexOf(String(no));
+  i >= 0 ? o.getiren.splice(i, 1) : o.getiren.push(String(no));
+  kaydet('odevler'); const y = window.scrollY; ciz(); window.scrollTo(0, y);
+}
+function odevBitir(id) { const o = S.odevler.find(x => x.id === id); o.bitti = !o.bitti; kaydet('odevler'); geri(); }
+function odevSil(id) { if (!confirm('Bu kayıt silinsin mi?')) return; S.odevler = S.odevler.filter(x => x.id !== id); kaydet('odevler'); geri(); }
+
+/* ---------- Yıllık plan ---------- */
+let PLAN_SEV = null;
+GORUNUM.plan = () => {
+  if (!PLAN_SEV) PLAN_SEV = (anlikDers()?.sinif || '5')[0];
+  const liste = (window.PLAN || {})[PLAN_SEV] || [];
+  const su = haftaBul(PLAN_SEV + '/A');
+  SONRA.push(() => document.querySelector('details[open]')?.scrollIntoView({block:'center'}));
+  return `<div class="bar"><h1>Yıllık plan</h1></div>
+    <div class="chips">${['5','6','7','8'].map(s => `<button class="chip g${s} ${s === PLAN_SEV ? 'on' : ''}" onclick="PLAN_SEV='${s}';ciz()">${s}. sınıf</button>`).join('')}</div>
+    <div class="g${PLAN_SEV}">` + liste.map(h => `<details class="week" ${h === su ? 'open' : ''}>
+      <summary><span style="color:var(--c);min-width:62px">${esc(h.hafta)}</span><span class="grow" style="flex:1">${esc(konu(h))}<br><span class="sub" style="font-weight:400">${esc(h.tarih)}</span></span>${h === su ? '<span class="cur-tag">Bu hafta</span>' : ''}</summary>
+      ${h.alanlar.map(a => `<div class="fld"><b>${esc(a.baslik)}</b>${esc(a.metin)}</div>`).join('')}
+    </details>`).join('') + `</div>`;
+};
+
+/* ---------- Ayarlar, içe/dışa aktarma ---------- */
+GORUNUM.ayarlar = () => {
+  const sinifSay = Object.keys(S.ogrenciler).length;
+  const ogrSay = Object.values(S.ogrenciler).reduce((a, l) => a + l.length, 0);
+  return `${geriBtn()}<div class="bar"><h1>Ayarlar</h1></div>
+    <div class="h2">Öğrenci listeleri</div>
+    <div class="card">${sinifSay ? `<b>${sinifSay}</b> şube, <b>${ogrSay}</b> öğrenci, <b>${S.fotoSayisi}</b> fotoğraf yüklü.` : 'Henüz liste yüklenmedi.'}
+      <div class="btnrow"><button class="btn solid" onclick="listeYukle()">Liste dosyası yükle</button>
+      ${S.fotoSayisi ? `<button class="btn danger" onclick="fotolariSil()">Fotoğrafları sil</button>` : ''}</div></div>
+    <div class="h2">Yedek</div>
+    <div class="card">Yedek; listeleri, notları, yoklamayı, ödevleri ve öğrenci notlarınızı içerir. <b>Fotoğraflar yedeğe konmaz.</b>
+      <div class="sub" style="margin-top:6px">Son yedek: ${S.sonYedek ? tarihYaz(S.sonYedek) : 'hiç alınmadı'}</div>
+      <div class="btnrow"><button class="btn solid" onclick="yedekAl()">Yedek al</button><button class="btn" onclick="yedekYukle()">Yedekten geri yükle</button></div></div>
+    <div class="h2">Tehlikeli bölge</div>
+    <div class="card"><button class="btn danger" onclick="hepsiniSil()">Bu telefondaki tüm verileri sil</button></div>
+    <p class="sub" style="text-align:center">Derslerim ${SURUM} · Tüm veriler yalnızca bu telefonda saklanır.</p>`;
+};
+async function jsonOku() {
+  const f = await dosyaSec(); if (!f) return null;
+  try { return JSON.parse(await f.text()); } catch { toast('Dosya okunamadı'); return null; }
+}
+async function listeYukle() {
+  const j = await jsonOku(); if (!j) return;
+  if (j.tur !== 'ogrenci-listesi' || !j.siniflar) return toast('Bu bir öğrenci listesi dosyası değil');
+  let foto = 0;
+  for (const [s, liste] of Object.entries(j.siniflar)) {
+    S.ogrenciler[s] = liste.map(o => ({no: String(o.no), ad: o.ad}));
+    for (const o of liste) if (o.foto) { await DB.set('foto', `${s}|${o.no}`, o.foto); foto++; }
+  }
+  await kaydet('ogrenciler'); S.fotoSayisi = await DB.count('foto');
+  ciz(); toast(`${Object.keys(j.siniflar).length} şube yüklendi${foto ? `, ${foto} fotoğraf` : ''}`);
+}
+async function fotolariSil() { if (!confirm('Tüm öğrenci fotoğrafları bu telefondan silinsin mi?')) return; await DB.clear('foto'); S.fotoSayisi = 0; ciz(); toast('Fotoğraflar silindi'); }
+function yedekHatirlat() {
+  const veriVar = Object.keys(S.notlar).length || Object.keys(S.yoklama).length || S.odevler.length;
+  if (!veriVar) return false;
+  if (!S.sonYedek) return true;
+  return (Date.now() - new Date(S.sonYedek).getTime()) > 7 * 864e5;
+}
+async function yedekAl() {
+  const veri = {}; for (const k of ['ogrenciler','notlar','yoklama','ogrNot','odevler','kaldik']) veri[k] = S[k];
+  const ad = `derslerim-yedek-${bugunStr()}.json`;
+  const dosya = new File([JSON.stringify({tur:'derslerim-yedek', surum:1, tarih:new Date().toISOString(), veri})], ad, {type:'application/json'});
+  try {
+    if (navigator.canShare && navigator.canShare({files:[dosya]})) await navigator.share({files:[dosya], title:ad});
+    else { const a = document.createElement('a'); a.href = URL.createObjectURL(dosya); a.download = ad; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); }
+    S.sonYedek = bugunStr(); await kaydet('sonYedek'); ciz(); toast('Yedek hazır');
+  } catch (e) { if (e.name !== 'AbortError') toast('Yedek alınamadı: ' + e.message); }
+}
+async function yedekYukle() {
+  const j = await jsonOku(); if (!j) return;
+  if (j.tur !== 'derslerim-yedek' || !j.veri) return toast('Bu bir Derslerim yedeği değil');
+  if (!confirm(`${kisaTarih(j.tarih.slice(0,10))} tarihli yedek yüklenecek. Bu telefondaki notlar, yoklama ve ödevler yedektekilerle DEĞİŞTİRİLECEK. Devam edilsin mi?`)) return;
+  for (const k of ['ogrenciler','notlar','yoklama','ogrNot','odevler','kaldik']) { S[k] = j.veri[k] ?? (k === 'odevler' ? [] : {}); await kaydet(k); }
+  ciz(); toast('Yedek geri yüklendi');
+}
+async function hepsiniSil() {
+  if (!confirm('Bu telefondaki TÜM listeler, notlar, yoklamalar, ödevler ve fotoğraflar silinecek. Emin misiniz?')) return;
+  if (!confirm('Son kez soruyorum: geri alınamaz. Yedeğiniz var mı? Silinsin mi?')) return;
+  await DB.clear('kv'); await DB.clear('foto'); await yukle(); git('bugun', {}, false); toast('Tüm veriler silindi');
+}
+
+/* ================= Başlat ================= */
+(async () => {
+  try { await yukle(); } catch (e) { document.body.innerHTML = `<div class="empty">Veriler açılamadı: ${esc(e.message)}</div>`; return; }
+  navigator.storage?.persist?.();
+  git('bugun', {}, false);
+  setInterval(() => { if (yigin[yigin.length-1]?.v === 'bugun' && !$('#ov')) ciz(); }, 30000);
+  if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js');
+})();
+</script>
+</body>
+</html>
