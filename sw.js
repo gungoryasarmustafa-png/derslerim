@@ -1,22 +1,32 @@
-// Uygulamanın internetsiz de açılması için dosyaları telefonda saklar.
-// Uygulama güncellendiğinde SURUM değiştirilir.
-const SURUM = 'derslerim-1.0';
+// Uygulamanın internetsiz (ve okul ağındaki engelde) açılması için dosyaları telefonda saklar.
+// Uygulama her açılışta telefondaki kopyadan açılır; yeni sürüm SURUM değiştirilince gelir.
+const SURUM = 'derslerim-1.1';
 const DOSYALAR = ['./', 'index.html', 'plan.js', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 
+// Engel sayfası gibi yabancı içeriklerin kopyaya girmemesi için kontrol
+async function gecerli(yol, r) {
+  if (!r.ok || r.redirected) return false;
+  if (yol === './' || yol.endsWith('.html')) return (await r.clone().text()).includes('id="nav"');
+  if (yol === 'plan.js') return (await r.clone().text()).startsWith('window.PLAN');
+  return true;
+}
+
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(SURUM).then(c => c.addAll(DOSYALAR)).then(() => self.skipWaiting()));
+  e.waitUntil((async () => {
+    const c = await caches.open(SURUM);
+    for (const yol of DOSYALAR) {
+      const r = await fetch(yol, {cache: 'reload'});
+      if (!(await gecerli(yol, r))) throw new Error('Geçersiz içerik: ' + yol);
+      await c.put(yol, r);
+    }
+    await self.skipWaiting();
+  })());
 });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== SURUM).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
-// Önce internetten yeni sürümü dener, yoksa saklanan kopyayı açar.
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
-  e.respondWith(
-    fetch(e.request).then(r => {
-      const kopya = r.clone();
-      caches.open(SURUM).then(c => c.put(e.request, kopya));
-      return r;
-    }).catch(() => caches.match(e.request, {ignoreSearch: true}))
-  );
+  const istek = e.request.mode === 'navigate' ? 'index.html' : e.request;
+  e.respondWith(caches.match(istek, {ignoreSearch: true}).then(r => r || fetch(e.request)));
 });
