@@ -139,6 +139,11 @@ details.week summary{list-style:none;padding:12px 0;font-weight:600;display:flex
 details.week summary::-webkit-details-marker{display:none}
 details.week .fld{padding:0 0 10px;font-size:14.5px;line-height:1.4;white-space:pre-wrap}
 details.week .fld b{display:block;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--c)}
+.mine{background:#fff;border-radius:12px;padding:10px 12px;margin:0 0 10px;font-size:14.5px;line-height:1.4}
+.mine>b{display:block;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--c);margin-bottom:2px}
+.mine .btnrow{margin-top:8px}
+details.resmi{margin:0 0 6px}
+details.resmi summary{font-size:13px;font-weight:600;color:var(--muted);padding:4px 0 10px}
 .cur-tag{font-size:11px;background:var(--c);color:#fff;border-radius:6px;padding:1px 6px;font-weight:700}
 label.lab{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:12px 2px 4px}
 </style>
@@ -149,10 +154,11 @@ label.lab{display:block;font-size:13px;font-weight:600;color:var(--muted);margin
 <input type="file" id="fileIn" accept=".json,application/json" hidden>
 
 <script src="plan.js"></script>
+<script src="benim-plan.js"></script>
 <script>
 'use strict';
 /* ================= Sabit bilgiler ================= */
-const SURUM = '1.2';
+const SURUM = '1.3';
 const SAATLER = {1:['08:30','09:10'],2:['09:25','10:05'],3:['10:20','11:00'],4:['11:15','11:55'],5:['12:25','13:05'],6:['13:20','14:00'],7:['14:15','14:55']};
 const PROGRAM = {
   1:{1:'7/B',2:'7/E',3:'7/C',4:'6/B',5:'8/D',6:'5/A',7:'8/A'},
@@ -197,7 +203,8 @@ const DB = (() => {
   };
 })();
 
-const ANAHTARLAR = ['ogrenciler','notlar','yoklama','ogrNot','odevler','kaldik','sonYedek'];
+const ANAHTARLAR = ['ogrenciler','notlar','yoklama','ogrNot','odevler','kaldik','benimPlan','sonYedek'];
+const YEDEK_ANAHTARLAR = ANAHTARLAR.filter(k => k !== 'sonYedek');
 const S = {};   // bellekteki veriler
 async function yukle() {
   for (const k of ANAHTARLAR) S[k] = (await DB.get('kv', k)) ?? (k === 'odevler' ? [] : k === 'sonYedek' ? null : {});
@@ -248,6 +255,21 @@ function haftaBul(sinif, tarih = new Date()) {
 function alan(h, ...adlar) { if (!h) return ''; for (const a of adlar) { const f = h.alanlar.find(x => x.baslik === a); if (f) return f.metin; } return ''; }
 const kazanim = h => alan(h, 'Kazanım', 'Öğrenme Çıktısı');
 const konu = h => alan(h, 'Konu', 'İçerik Çerçevesi');
+
+/* ---------- Benim planım (kendi konum + malzeme, sınıf düzeyine göre) ---------- */
+const haftaNo = h => parseInt(h.hafta);
+const planHafta = (sev, no) => ((window.PLAN || {})[sev] || []).find(h => haftaNo(h) === no) || null;
+const tablodan = (ad, sev, no) => ((window[ad] || {})[sev] || []).find(x => x[0].includes(no)) || null;
+const basitKazanim = (sev, h) => h ? (tablodan('BASIT_KAZANIM', sev, haftaNo(h))?.[1] || kazanim(h)) : '';
+const oneri = (sev, h) => { const o = h && tablodan('ONERI', sev, haftaNo(h)); return o ? {e: o[1], m: o[2]} : null; };
+const benim = (sev, h) => h ? (S.benimPlan[sev]?.[haftaNo(h)] || null) : null;
+function haftaOzet(sinif, h) {
+  if (!h) return `<div class="kz muted">Bu hafta planda ders yok (tatil).</div>`;
+  const sev = sinif[0], b = benim(sev, h);
+  return `<div class="kz"><b>${b?.konu ? 'Benim konum ★' : 'Konu'}</b>${esc(b?.konu || konu(h))}</div>
+    ${b?.malzeme ? `<div class="kz"><b>Malzeme</b>${esc(b.malzeme)}</div>` : ''}
+    <div class="kz"><b>Kazanım</b>${esc(basitKazanim(sev, h))}</div>`;
+}
 
 function gununDersleri(d = new Date()) {
   const p = PROGRAM[d.getDay()] || {};
@@ -323,11 +345,12 @@ GORUNUM.bugun = () => {
       <div class="lbl">${a.durum === 'simdi' ? 'Şimdi' : 'Sıradaki'} · ${a.no}. ders</div>
       <div class="big">${a.sinif}</div>
       <div class="sub">${a.bas} – ${a.bit} · Görsel Sanatlar</div>
-      ${h ? `<div class="kz"><b>${esc(konu(h))}</b>${esc(kazanim(h))}</div>` : `<div class="kz muted">Bu hafta planda ders yok (tatil).</div>`}
+      ${haftaOzet(a.sinif, h)}
       ${kal ? `<div class="kz"><b>Nerede kaldık · ${kisaTarih(kal.t)}</b>${esc(kal.m)}</div>` : ''}
       <div class="btnrow">
         <button class="btn solid" onclick="git('yoklama',{sinif:'${a.sinif}'})">Yoklama</button>
         <button class="btn" onclick="kaldikDuzenle('${a.sinif}')">Nerede kaldık</button>
+        ${h ? `<button class="btn" onclick="planDuzenle('${a.sinif[0]}',${haftaNo(h)})">Konum</button>` : ''}
         <button class="btn" onclick="git('sinif',{sinif:'${a.sinif}'})">Sınıf</button>
       </div></div>`;
   }
@@ -371,11 +394,12 @@ GORUNUM.sinif = ({sinif}) => {
     <div class="bar"><div style="flex:1"><div class="sub">${ders.join(', ')}</div><h1 style="color:var(--c)">${sinif}</h1></div></div>
     <div class="card cls">
       <div class="lbl">Bu hafta${h ? ' · ' + esc(h.hafta) : ''}</div>
-      ${h ? `<div class="kz"><b>${esc(konu(h))}</b>${esc(kazanim(h))}</div>` : `<div class="kz muted">Bu hafta planda ders yok.</div>`}
+      ${haftaOzet(sinif, h)}
       <div class="kz"><b>Nerede kaldık${kal ? ' · ' + kisaTarih(kal.t) : ''}</b>${kal ? esc(kal.m) : '<span class="muted">Henüz not yok</span>'}</div>
       <div class="btnrow">
         <button class="btn solid" onclick="git('yoklama',{sinif:'${sinif}'})">Yoklama</button>
         <button class="btn" onclick="kaldikDuzenle('${sinif}')">Nerede kaldık</button>
+        ${h ? `<button class="btn" onclick="planDuzenle('${sinif[0]}',${haftaNo(h)})">Konum</button>` : ''}
         <button class="btn" onclick="git('notlar',{sinif:'${sinif}'})">Not gir</button>
         <button class="btn" onclick="odevYeni('${sinif}')">+ Ödev</button>
       </div>
@@ -582,19 +606,67 @@ function odevBitir(id) { const o = S.odevler.find(x => x.id === id); o.bitti = !
 function odevSil(id) { if (!confirm('Bu kayıt silinsin mi?')) return; S.odevler = S.odevler.filter(x => x.id !== id); kaydet('odevler'); geri(); }
 
 /* ---------- Yıllık plan ---------- */
-let PLAN_SEV = null;
+let PLAN_SEV = null, PLAN_ACIK = null;
 GORUNUM.plan = () => {
   if (!PLAN_SEV) PLAN_SEV = (anlikDers()?.sinif || '5')[0];
-  const liste = (window.PLAN || {})[PLAN_SEV] || [];
-  const su = haftaBul(PLAN_SEV + '/A');
-  SONRA.push(() => document.querySelector('details[open]')?.scrollIntoView({block:'center'}));
+  const sev = PLAN_SEV, liste = (window.PLAN || {})[sev] || [];
+  const su = haftaBul(sev + '/A');
+  const acik = PLAN_ACIK ?? (su ? haftaNo(su) : null);
+  const dolu = liste.filter(h => benim(sev, h)).length;
+  SONRA.push(() => document.getElementById('hf' + acik)?.scrollIntoView({block:'center'}));
   return `<div class="bar"><h1>Yıllık plan</h1></div>
-    <div class="chips">${['5','6','7','8'].map(s => `<button class="chip g${s} ${s === PLAN_SEV ? 'on' : ''}" onclick="PLAN_SEV='${s}';ciz()">${s}. sınıf</button>`).join('')}</div>
-    <div class="g${PLAN_SEV}">` + liste.map(h => `<details class="week" ${h === su ? 'open' : ''}>
-      <summary><span style="color:var(--c);min-width:62px">${esc(h.hafta)}</span><span class="grow" style="flex:1">${esc(konu(h))}<br><span class="sub" style="font-weight:400">${esc(h.tarih)}</span></span>${h === su ? '<span class="cur-tag">Bu hafta</span>' : ''}</summary>
-      ${h.alanlar.map(a => `<div class="fld"><b>${esc(a.baslik)}</b>${esc(a.metin)}</div>`).join('')}
-    </details>`).join('') + `</div>`;
+    <div class="chips">${['5','6','7','8'].map(s => `<button class="chip g${s} ${s === sev ? 'on' : ''}" onclick="PLAN_SEV='${s}';PLAN_ACIK=null;ciz()">${s}. sınıf</button>`).join('')}</div>
+    <div class="sub" style="margin:0 4px 4px">★ Kendi konunu yazdığın hafta: <b>${dolu}</b> / ${liste.length}</div>
+    <div class="g${sev}">` + liste.map(h => {
+      const no = haftaNo(h), b = benim(sev, h), o = oneri(sev, h), bg = alan(h, 'Belirli Gün ve Haftalar');
+      return `<details class="week" id="hf${no}" ${no === acik ? 'open' : ''} ontoggle="if(this.open)PLAN_ACIK=${no}">
+      <summary><span style="color:var(--c);min-width:62px">${esc(h.hafta)}</span><span class="grow" style="flex:1">${b?.konu ? '★ ' + esc(b.konu) : esc(konu(h))}<br><span class="sub" style="font-weight:400">${esc(h.tarih)}</span></span>${h === su ? '<span class="cur-tag">Bu hafta</span>' : ''}</summary>
+      <div class="fld"><b>Kazanım</b>${esc(basitKazanim(sev, h))}</div>
+      <div class="mine"><b>Benim planım</b>
+        ${b ? `${b.konu ? `<div>${esc(b.konu)}</div>` : ''}${b.malzeme ? `<div class="sub">Malzeme: ${esc(b.malzeme)}</div>` : ''}`
+            : `<div class="muted">Henüz yazmadın. Boş kalırsa resmî konu görünür.</div>`}
+        <div class="btnrow"><button class="btn solid" onclick="planDuzenle('${sev}',${no})">${b ? 'Düzenle' : 'Yaz'}</button>
+          ${o && !b ? `<button class="btn" onclick="oneriKullan('${sev}',${no})">Önerimi kullan</button>` : ''}</div>
+      </div>
+      ${o ? `<div class="fld"><b>Önerim</b>${esc(o.e)}${o.m ? `\nMalzeme: ${esc(o.m)}` : ''}</div>` : ''}
+      ${bg ? `<div class="fld"><b>Belirli gün / hafta</b>${esc(bg)}</div>` : ''}
+      <details class="resmi"><summary>Resmî plan (tam metin)</summary>
+        ${h.alanlar.map(a => `<div class="fld"><b>${esc(a.baslik)}</b>${esc(a.metin)}</div>`).join('')}</details>
+    </details>`;
+    }).join('') + `</div>`;
 };
+function planDuzenle(sev, no) {
+  const h = planHafta(sev, no); if (!h) return;
+  const b = S.benimPlan[sev]?.[no] || {}, o = oneri(sev, h);
+  sheet(`<h3>${sev}. sınıf · ${esc(h.hafta)}</h3>
+    <div class="sub">${esc(h.tarih)} · Resmî konu: ${esc(konu(h))}</div>
+    <div class="note" style="margin-top:10px"><div class="d">Kazanım</div>${esc(basitKazanim(sev, h))}</div>
+    <label class="lab">Benim konum</label>
+    <textarea id="bpKonu" style="min-height:70px" placeholder="Boş bırakırsan resmî konu görünür">${esc(b.konu || '')}</textarea>
+    <label class="lab">Malzeme</label>
+    <input class="inp" id="bpMalzeme" placeholder="Örn. Sulu boya, fırça, su kabı" value="${esc(b.malzeme || '')}">
+    ${o ? `<div class="note" style="margin-top:12px"><div class="d">Önerim</div>${esc(o.e)}${o.m ? `\nMalzeme: ${esc(o.m)}` : ''}
+      <div class="btnrow" style="margin-top:8px"><button class="btn" onclick="oneriDoldur('${sev}',${no})">Önerimi kutulara yaz</button></div></div>` : ''}
+    <div class="btnrow"><button class="btn solid" style="flex:1" onclick="planKaydet('${sev}',${no})">Kaydet</button><button class="btn" onclick="kapatSheet()">Vazgeç</button></div>`);
+}
+function oneriDoldur(sev, no) {
+  const o = oneri(sev, planHafta(sev, no)); if (!o) return;
+  $('#bpKonu').value = o.e; $('#bpMalzeme').value = o.m;
+}
+function planYaz(sev, no, konu, malzeme) {
+  const d = S.benimPlan[sev] ||= {};
+  if (konu || malzeme) d[no] = {konu, malzeme}; else delete d[no];
+  if (!Object.keys(d).length) delete S.benimPlan[sev];
+  kaydet('benimPlan'); PLAN_ACIK = no;
+}
+function planKaydet(sev, no) {
+  planYaz(sev, no, $('#bpKonu').value.trim(), $('#bpMalzeme').value.trim());
+  kapatSheet(); ciz(); toast('Kaydedildi');
+}
+function oneriKullan(sev, no) {
+  const o = oneri(sev, planHafta(sev, no)); if (!o) return;
+  planYaz(sev, no, o.e, o.m); ciz(); toast('Önerim planına eklendi');
+}
 
 /* ---------- Ayarlar, içe/dışa aktarma ---------- */
 GORUNUM.ayarlar = () => {
@@ -606,7 +678,7 @@ GORUNUM.ayarlar = () => {
       <div class="btnrow"><button class="btn solid" onclick="listeYukle()">Liste dosyası yükle</button>
       ${S.fotoSayisi ? `<button class="btn danger" onclick="fotolariSil()">Fotoğrafları sil</button>` : ''}</div></div>
     <div class="h2">Yedek</div>
-    <div class="card">Yedek; listeleri, notları, yoklamayı, ödevleri ve öğrenci notlarınızı içerir. <b>Fotoğraflar yedeğe konmaz.</b>
+    <div class="card">Yedek; listeleri, notları, yoklamayı, ödevleri, öğrenci notlarınızı ve kendi planınızı içerir. <b>Fotoğraflar yedeğe konmaz.</b>
       <div class="sub" style="margin-top:6px">Son yedek: ${S.sonYedek ? tarihYaz(S.sonYedek) : 'hiç alınmadı'}</div>
       <div class="btnrow"><button class="btn solid" onclick="yedekAl()">Yedek al</button><button class="btn" onclick="yedekYukle()">Yedekten geri yükle</button></div></div>
     <div class="h2">Tehlikeli bölge</div>
@@ -630,13 +702,13 @@ async function listeYukle() {
 }
 async function fotolariSil() { if (!confirm('Tüm öğrenci fotoğrafları bu telefondan silinsin mi?')) return; await DB.clear('foto'); S.fotoSayisi = 0; ciz(); toast('Fotoğraflar silindi'); }
 function yedekHatirlat() {
-  const veriVar = Object.keys(S.notlar).length || Object.keys(S.yoklama).length || S.odevler.length;
+  const veriVar = Object.keys(S.notlar).length || Object.keys(S.yoklama).length || S.odevler.length || Object.keys(S.benimPlan).length;
   if (!veriVar) return false;
   if (!S.sonYedek) return true;
   return (Date.now() - new Date(S.sonYedek).getTime()) > 7 * 864e5;
 }
 async function yedekAl() {
-  const veri = {}; for (const k of ['ogrenciler','notlar','yoklama','ogrNot','odevler','kaldik']) veri[k] = S[k];
+  const veri = {}; for (const k of YEDEK_ANAHTARLAR) veri[k] = S[k];
   const ad = `derslerim-yedek-${bugunStr()}.json`;
   const dosya = new File([JSON.stringify({tur:'derslerim-yedek', surum:1, tarih:new Date().toISOString(), veri})], ad, {type:'application/json'});
   try {
@@ -649,7 +721,7 @@ async function yedekYukle() {
   const j = await jsonOku(); if (!j) return;
   if (j.tur !== 'derslerim-yedek' || !j.veri) return toast('Bu bir Derslerim yedeği değil');
   if (!confirm(`${kisaTarih(j.tarih.slice(0,10))} tarihli yedek yüklenecek. Bu telefondaki notlar, yoklama ve ödevler yedektekilerle DEĞİŞTİRİLECEK. Devam edilsin mi?`)) return;
-  for (const k of ['ogrenciler','notlar','yoklama','ogrNot','odevler','kaldik']) { S[k] = j.veri[k] ?? (k === 'odevler' ? [] : {}); await kaydet(k); }
+  for (const k of YEDEK_ANAHTARLAR) { S[k] = j.veri[k] ?? (k === 'odevler' ? [] : {}); await kaydet(k); }
   ciz(); toast('Yedek geri yüklendi');
 }
 async function hepsiniSil() {
