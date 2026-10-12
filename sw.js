@@ -1,6 +1,6 @@
 // Uygulamanın internetsiz (ve okul ağındaki engelde) açılması için dosyaları telefonda saklar.
 // Uygulama her açılışta telefondaki kopyadan açılır; yeni sürüm SURUM değiştirilince gelir.
-const SURUM = 'derslerim-1.3';
+const SURUM = 'derslerim-1.4';
 const DOSYALAR = ['./', 'index.html', 'plan.js', 'benim-plan.js','manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 
 // Engel sayfası gibi yabancı içeriklerin kopyaya girmemesi için kontrol
